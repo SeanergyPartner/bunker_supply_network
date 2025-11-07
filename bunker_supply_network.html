@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>씨너지 벙커링 공급망 네트워크</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .controls {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .controls button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .controls button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .btn-all {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-supplier {
+            background: #ff6b9d;
+            color: white;
+        }
+
+        .btn-trader {
+            background: #4e73df;
+            color: white;
+        }
+
+        .btn-customer {
+            background: #1cc88a;
+            color: white;
+        }
+
+        .btn-port {
+            background: #f6c23e;
+            color: white;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .network-container {
+            padding: 30px;
+            min-height: 800px;
+            position: relative;
+        }
+
+        .network-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .column {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .column-header {
+            text-align: center;
+            font-size: 1.3em;
+            font-weight: bold;
+            padding: 15px;
+            border-radius: 10px;
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .supplier-header {
+            background: linear-gradient(135deg, #ff6b9d 0%, #ff8fab 100%);
+        }
+
+        .trader-header {
+            background: linear-gradient(135deg, #4e73df 0%, #6c8ef5 100%);
+        }
+
+        .seanergy-header {
+            background: linear-gradient(135deg, #f6c23e 0%, #f8d274 100%);
+        }
+
+        .customer-header {
+            background: linear-gradient(135deg, #1cc88a 0%, #3ddaa4 100%);
+        }
+
+        .node {
+            padding: 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .node::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .node:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+
+        .node.active {
+            transform: scale(1.05);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.3);
+        }
+
+        .node.dimmed {
+            opacity: 0.3;
+        }
+
+        .supplier-node {
+            background: linear-gradient(135deg, #ff6b9d 0%, #ff8fab 100%);
+            color: white;
+        }
+
+        .trader-node {
+            background: linear-gradient(135deg, #4e73df 0%, #6c8ef5 100%);
+            color: white;
+        }
+
+        .seanergy-node {
+            background: linear-gradient(135deg, #f6c23e 0%, #f8d274 100%);
+            color: white;
+            font-size: 1.2em;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .customer-node {
+            background: linear-gradient(135deg, #1cc88a 0%, #3ddaa4 100%);
+            color: white;
+        }
+
+        .node-title {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 8px;
+        }
+
+        .node-info {
+            font-size: 0.85em;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        .node-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 4px;
+            font-size: 0.75em;
+            margin-top: 5px;
+            margin-right: 5px;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legend-color {
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+        }
+
+        .info-panel {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            max-width: 350px;
+            display: none;
+            z-index: 1000;
+        }
+
+        .info-panel.show {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .info-panel-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .info-panel-close:hover {
+            color: #333;
+        }
+
+        .info-panel h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .info-panel-content {
+            color: #666;
+            line-height: 1.8;
+            font-size: 0.95em;
+        }
+
+        .port-filter {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .port-tag {
+            padding: 5px 12px;
+            background: #e9ecef;
+            border: 2px solid transparent;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .port-tag:hover {
+            background: #dee2e6;
+        }
+
+        .port-tag.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        @media (max-width: 1200px) {
+            .network-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .network-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .info-panel {
+                left: 20px;
+                right: 20px;
+                bottom: 20px;
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚢 씨너지 벙커링 공급망 네트워크</h1>
+            <p>클릭하여 연결 관계를 확인하세요</p>
+        </div>
+
+        <div class="controls">
+            <button class="btn-all" onclick="filterAll()">전체 보기</button>
+            <button class="btn-supplier" onclick="filterByType('supplier')">피지컬 서플</button>
+            <button class="btn-trader" onclick="filterByType('trader')">중간 트레이더</button>
+            <button class="btn-customer" onclick="filterByType('customer')">고객사</button>
+            
+            <div class="port-filter">
+                <span style="font-weight: 600; align-self: center;">항만:</span>
+                <div class="port-tag" onclick="filterByPort('all')">전체</div>
+                <div class="port-tag" onclick="filterByPort('busan')">부산/울산</div>
+                <div class="port-tag" onclick="filterByPort('incheon')">인천/평택</div>
+                <div class="port-tag" onclick="filterByPort('yeosu')">여수/광양</div>
+            </div>
+
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="회사명 검색..." oninput="searchNodes()">
+            </div>
+        </div>
+
+        <div class="network-container">
+            <div class="network-grid" id="networkGrid">
+                <!-- Column 1: 피지컬 서플 -->
+                <div class="column">
+                    <div class="column-header supplier-header">피지컬 서플</div>
+                    
+                    <div class="node supplier-node" data-id="sk-energy" data-type="supplier" data-port="busan" onclick="showConnections('sk-energy')">
+                        <div class="node-title">SK Energy</div>
+                        <div class="node-info">
+                            • 울산 CLX 공장<br>
+                            • 동남권 제1 공급기지<br>
+                            <span class="node-badge">부산/울산</span>
+                        </div>
+                    </div>
+
+                    <div class="node supplier-node" data-id="sk-ipc" data-type="supplier" data-port="incheon" onclick="showConnections('sk-ipc')">
+                        <div class="node-title">SK IPC</div>
+                        <div class="node-info">
+                            • 인천 공장<br>
+                            • 서해안 제1 공급기지<br>
+                            <span class="node-badge">인천/평택</span>
+                        </div>
+                    </div>
+
+                    <div class="node supplier-node" data-id="sk-on" data-type="supplier" data-port="all" onclick="showConnections('sk-on')">
+                        <div class="node-title">SK ON</div>
+                        <div class="node-info">
+                            • SK 트레이딩 총괄<br>
+                            • 구 SK TI 합병<br>
+                            <span class="node-badge">전 항만</span>
+                        </div>
+                    </div>
+
+                    <div class="node supplier-node" data-id="hd-oilbank" data-type="supplier" data-port="incheon,busan" onclick="showConnections('hd-oilbank')">
+                        <div class="node-title">HD Hyundai Oilbank</div>
+                        <div class="node-info">
+                            • 대산 공장<br>
+                            • 서해의 강자 🔥<br>
+                            <span class="node-badge">서해/동남권</span>
+                        </div>
+                    </div>
+
+                    <div class="node supplier-node" data-id="hd-corp" data-type="supplier" data-port="all" onclick="showConnections('hd-corp')">
+                        <div class="node-title">Hyundai Corporation</div>
+                        <div class="node-info">
+                            • BDR 발행 주체<br>
+                            <span class="node-badge">전 항만</span>
+                        </div>
+                    </div>
+
+                    <div class="node supplier-node" data-id="gs-caltex" data-type="supplier" data-port="yeosu" onclick="showConnections('gs-caltex')">
+                        <div class="node-title">GS Caltex</div>
+                        <div class="node-info">
+                            • 여수 공장<br>
+                            • 남해안 유일 공급기지<br>
+                            • 120 CST 유일 ⭐<br>
+                            <span class="node-badge">여수/광양</span>
+                        </div>
+                    </div>
+
+                    <div class="node supplier-node" data-id="gs-global-bdr" data-type="supplier" data-port="all" onclick="showConnections('gs-global-bdr')">
+                        <div class="node-title">GS Global (BDR)</div>
+                        <div class="node-info">
+                            • GS 트레이딩 총괄<br>
+                            • BDR 발행 주체<br>
+                            <span class="node-badge">전 항만</span>
+                        </div>
+                    </div>
+
+                    <div class="node supplier-node" data-id="s-oil" data-type="supplier" data-port="busan" onclick="showConnections('s-oil')">
+                        <div class="node-title">S-OIL</div>
+                        <div class="node-info">
+                            • 온산 공장<br>
+                            • 동남권 제2 공급기지<br>
+                            <span class="node-badge">온산/울산</span>
+                        </div>
+                    </div>
+
+                    <div class="node supplier-node" data-id="vitol" data-type="supplier" data-port="busan" onclick="showConnections('vitol')">
+                        <div class="node-title">VITOL</div>
+                        <div class="node-info">
+                            • MGO/LSMGO 전문 🔥<br>
+                            • 부산/울산 특화<br>
+                            <span class="node-badge">남해</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Column 2: 중간 트레이더 -->
+                <div class="column">
+                    <div class="column-header trader-header">중간 트레이더</div>
+
+                    <div class="node trader-node" data-id="prime" data-type="trader" data-port="all" onclick="showConnections('prime')">
+                        <div class="node-title">프라임</div>
+                        <div class="node-info">
+                            • SK Energy 물량<br>
+                            • 여신: 30DD<br>
+                            • 챗봇 사용<br>
+                            <span class="node-badge">왓츠앱</span>
+                        </div>
+                    </div>
+
+                    <div class="node trader-node" data-id="sea-oil" data-type="trader" data-port="all" onclick="showConnections('sea-oil')">
+                        <div class="node-title">씨오일 (Sea-OIL)</div>
+                        <div class="node-info">
+                            • GS, S-OIL, SK, HD 커버<br>
+                            • 여신 문제 상존<br>
+                            • CIA 가능<br>
+                            <span class="node-badge">카카오 비즈</span>
+                        </div>
+                    </div>
+
+                    <div class="node trader-node" data-id="panoco" data-type="trader" data-port="all" onclick="showConnections('panoco')">
+                        <div class="node-title">파노코</div>
+                        <div class="node-info">
+                            • HD, SK, S-OIL 커버<br>
+                            • 여신 무한대 ⭐<br>
+                            • 덜 까칠함<br>
+                            <span class="node-badge">카카오 비즈</span>
+                        </div>
+                    </div>
+
+                    <div class="node trader-node" data-id="hyundai-fuels" data-type="trader" data-port="all" onclick="showConnections('hyundai-fuels')">
+                        <div class="node-title">현대퓨얼</div>
+                        <div class="node-info">
+                            • HD, SK, HD Corp<br>
+                            • CIA 조건<br>
+                            • 쓰루 가능<br>
+                            <span class="node-badge">왓츠앱</span>
+                        </div>
+                    </div>
+
+                    <div class="node trader-node" data-id="gs-global-trader" data-type="trader" data-port="yeosu,all" onclick="showConnections('gs-global-trader')">
+                        <div class="node-title">GS 글로벌 (판매자)</div>
+                        <div class="node-info">
+                            • GS Caltex 물량<br>
+                            • 120 CST 가능 ⭐<br>
+                            • 가스 미니멈 15톤<br>
+                            <span class="node-badge">왓츠앱</span>
+                        </div>
+                    </div>
+
+                    <div class="node trader-node" data-id="okju" data-type="trader" data-port="yeosu" onclick="showConnections('okju')">
+                        <div class="node-title">옥주급유</div>
+                        <div class="node-info">
+                            • GS 물량<br>
+                            • 120 CST 개런티 ⭐<br>
+                            • 김미자 이사<br>
+                            <span class="node-badge">카카오 비즈</span>
+                        </div>
+                    </div>
+
+                    <div class="node trader-node" data-id="donglim" data-type="trader" data-port="all" onclick="showConnections('donglim')">
+                        <div class="node-title">동림</div>
+                        <div class="node-info">
+                            • SK Energy 물량<br>
+                            • 가스 온리<br>
+                            <span class="node-badge">카카오톡</span>
+                        </div>
+                    </div>
+
+                    <div class="node trader-node" data-id="ocean-link" data-type="trader" data-port="all" onclick="showConnections('ocean-link')">
+                        <div class="node-title">오션링크</div>
+                        <div class="node-info">
+                            • HD 계열 물량<br>
+                            • 까칠함 주의 ⚠️<br>
+                            <span class="node-badge">전 항만</span>
+                        </div>
+                    </div>
+
+                    <div class="node trader-node" data-id="shinjin" data-type="trader" data-port="busan" onclick="showConnections('shinjin')">
+                        <div class="node-title">신진</div>
+                        <div class="node-info">
+                            • VITOL 전담<br>
+                            • LSMGO 전문<br>
+                            <span class="node-badge">부산/울산</span>
+                        </div>
+                    </div>
+
+                    <div class="node trader-node" data-id="minerva" data-type="trader" data-port="all" onclick="showConnections('minerva')">
+                        <div class="node-title">미네르바 🌟</div>
+                        <div class="node-info">
+                            • 메이저 트레이더<br>
+                            • 전 정유사 커버<br>
+                            • 준모 담당<br>
+                            <span class="node-badge">전 항만</span>
+                        </div>
+                    </div>
+
+                    <div class="node trader-node" data-id="korea-marine" data-type="trader" data-port="all" onclick="showConnections('korea-marine')">
+                        <div class="node-title">한국해양급유</div>
+                        <div class="node-info">
+                            • 가스 공급 가능<br>
+                            <span class="node-badge">정보 부족</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Column 3: 씨너지 -->
+                <div class="column">
+                    <div class="column-header seanergy-header">씨너지 (중개인)</div>
+
+                    <div class="node seanergy-node" data-id="seanergy" data-type="seanergy" onclick="showConnections('seanergy')">
+                        <div class="node-title">🚢 SEANERGY</div>
+                        <div class="node-info">
+                            우리 회사<br>
+                            트레이더 / 중개인
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Column 4: 고객사 -->
+                <div class="column">
+                    <div class="column-header customer-header">고객사 (선주)</div>
+
+                    <div class="node customer-node" data-id="orion" data-type="customer" data-port="all" onclick="showConnections('orion')">
+                        <div class="node-title">오리온</div>
+                        <div class="node-info">
+                            • 윤희근 사장 (CST/얼리 민감)<br>
+                            • 윤현석 차장 (얼리 민감)<br>
+                            • GS글로벌, SK 직거래<br>
+                            <span class="node-badge">카카오 비즈</span>
+                        </div>
+                    </div>
+
+                    <div class="node customer-node" data-id="bunker-partners" data-type="customer" data-port="all" onclick="showConnections('bunker-partners')">
+                        <div class="node-title">벙커파트너스</div>
+                        <div class="node-info">
+                            • 현대퓨얼 직거래<br>
+                            • 선주 측<br>
+                        </div>
+                    </div>
+
+                    <div class="node customer-node" data-id="emarine" data-type="customer" data-port="all" onclick="showConnections('emarine')">
+                        <div class="node-title">홍콩 이마린</div>
+                        <div class="node-info">
+                            • 30 DDD (CIA 안됨)<br>
+                            • 거래마다 싫어하는 기름집 있음<br>
+                            <span class="node-badge">위챗</span>
+                        </div>
+                    </div>
+
+                    <div class="node customer-node" data-id="future-fuels" data-type="customer" data-port="all" onclick="showConnections('future-fuels')">
+                        <div class="node-title">퓨처퓨얼스</div>
+                        <div class="node-info">
+                            <span class="node-badge">왓츠앱</span>
+                        </div>
+                    </div>
+
+                    <div class="node customer-node" data-id="singfuel" data-type="customer" data-port="all" onclick="showConnections('singfuel')">
+                        <div class="node-title">싱퓨얼</div>
+                        <div class="node-info">
+                            • 싱가포르 시장<br>
+                            • "Make life easier"<br>
+                            <span class="node-badge">왓츠앱</span>
+                        </div>
+                    </div>
+
+                    <div class="node customer-node" data-id="jisung" data-type="customer" data-port="all" onclick="showConnections('jisung')">
+                        <div class="node-title">지성쉬핑</div>
+                        <div class="node-info">
+                            <span class="node-badge">정보 부족</span>
+                        </div>
+                    </div>
+
+                    <div class="node customer-node" data-id="arab" data-type="customer" data-port="all" onclick="showConnections('arab')">
+                        <div class="node-title">아랍 업체들</div>
+                        <div class="node-info">
+                            • 결제 매우 늦음 ⚠️<br>
+                            • 보통 7DDD<br>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(135deg, #ff6b9d 0%, #ff8fab 100%);"></div>
+                    <span>피지컬 서플 (BDR 발행자)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(135deg, #4e73df 0%, #6c8ef5 100%);"></div>
+                    <span>중간 트레이더</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(135deg, #f6c23e 0%, #f8d274 100%);"></div>
+                    <span>씨너지 (중개인)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(135deg, #1cc88a 0%, #3ddaa4 100%);"></div>
+                    <span>고객사 (선주)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="info-panel" id="infoPanel">
+        <button class="info-panel-close" onclick="closeInfoPanel()">×</button>
+        <h3 id="infoPanelTitle"></h3>
+        <div class="info-panel-content" id="infoPanelContent"></div>
+    </div>
+
+    <script>
+        // 연결 관계 데이터
+        const connections = {
+            // 피지컬 서플 → 중간 트레이더
+            'sk-energy': ['prime', 'sea-oil', 'panoco', 'donglim', 'hyundai-fuels', 'minerva'],
+            'sk-ipc': ['sk-on'],
+            'sk-on': ['prime', 'sea-oil', 'panoco', 'donglim', 'minerva'],
+            'hd-oilbank': ['hyundai-fuels', 'panoco', 'ocean-link', 'sea-oil', 'minerva'],
+            'hd-corp': ['hyundai-fuels', 'ocean-link', 'sea-oil', 'minerva'],
+            'gs-caltex': ['gs-global-trader', 'okju', 'sea-oil', 'minerva'],
+            'gs-global-bdr': ['gs-global-trader', 'okju', 'minerva'],
+            's-oil': ['panoco', 'sea-oil', 'minerva'],
+            'vitol': ['shinjin'],
+
+            // 중간 트레이더 → 씨너지
+            'prime': ['seanergy'],
+            'sea-oil': ['seanergy'],
+            'panoco': ['seanergy'],
+            'hyundai-fuels': ['seanergy'],
+            'gs-global-trader': ['seanergy'],
+            'okju': ['seanergy'],
+            'donglim': ['seanergy'],
+            'ocean-link': ['seanergy'],
+            'shinjin': ['seanergy'],
+            'minerva': ['seanergy'],
+            'korea-marine': ['seanergy'],
+
+            // 씨너지 → 고객사
+            'seanergy': ['orion', 'bunker-partners', 'emarine', 'future-fuels', 'singfuel', 'jisung', 'arab'],
+
+            // 직거래 (오리온)
+            'orion-direct': ['gs-global-trader', 'sk-energy']
+        };
+
+        // 상세 정보
+        const detailInfo = {
+            'sk-energy': {
+                title: 'SK Energy',
+                content: `<strong>위치:</strong> 울산 CLX 공장 (세계 최대 규모)<br>
+                         <strong>커버 지역:</strong> 동남권 (울산, 부산, 포항)<br>
+                         <strong>얼리:</strong> 정보 업데이트 필요<br>
+                         <strong>바징비:</strong> 150톤 미만 500불, 150-300톤 300불 (남동해)<br>
+                         <strong>특징:</strong> 프라임 여신 바닥남, 트레이딩 비중 높음<br>
+                         <strong>직거래:</strong> 오리온`
+            },
+            'sk-ipc': {
+                title: 'SK IPC (SK 인천석유화학)',
+                content: `<strong>위치:</strong> 인천 공장<br>
+                         <strong>커버 지역:</strong> 서해안 (인천, 평택, 당진)<br>
+                         <strong>특징:</strong> 서해안 제1 공급 기지<br>
+                         <strong>트레이딩:</strong> SK ON 통해 판매`
+            },
+            'sk-on': {
+                title: 'SK ON (구 SK TI)',
+                content: `<strong>역할:</strong> SK 그룹 벙커링 판매/트레이딩 총괄<br>
+                         <strong>범위:</strong> 전 항만 (서해 SK IPC, 동남 SK Energy 물량)<br>
+                         <strong>BDR:</strong> 전 항만에서 발행<br>
+                         <strong>합병:</strong> 2025년 2월, SK TI 명칭 더 이상 사용 안 함`
+            },
+            'hd-oilbank': {
+                title: 'HD Hyundai Oilbank',
+                content: `<strong>위치:</strong> 대산(서산) 공장<br>
+                         <strong>별명:</strong> "서해의 강자" 🔥<br>
+                         <strong>커버 지역:</strong> 서해안 + 동남권<br>
+                         <strong>특징:</strong> 매우 공격적 직접 판매, 전 항만 활동<br>
+                         <strong>바징비:</strong> 150-300톤 200불 (남동해)<br>
+                         <strong>얼리:</strong> 10일 (Gas 15일) - 11/5 기준<br>
+                         <strong>제약:</strong> 가스 없어서 200 CST 개런티 불가`
+            },
+            'gs-caltex': {
+                title: 'GS Caltex',
+                content: `<strong>위치:</strong> 여수 공장<br>
+                         <strong>커버 지역:</strong> 남해안 (여수, 광양) 유일<br>
+                         <strong>특징:</strong> 부산/울산으로도 바지 공급<br>
+                         <strong>얼리:</strong> 7일 (LSGO only, no offer) - 11/5 기준<br>
+                         <strong>특수:</strong> 유일하게 120 CST 취급 ⭐<br>
+                         <strong>트레이딩:</strong> GS Global 통한 판매 비중 높음`
+            },
+            's-oil': {
+                title: 'S-OIL (에스오일)',
+                content: `<strong>위치:</strong> 온산 공장 (울산 바로 옆)<br>
+                         <strong>커버 지역:</strong> 동남권 (온산, 울산, 부산)<br>
+                         <strong>특징:</strong> 높은 직접 판매 비중<br>
+                         <strong>얼리:</strong> 8일 (LSGO only, no offer) - 11/5 기준<br>
+                         <strong>주의:</strong> 일부 고객이 싫어함 (예: 홍콩 이마린)<br>
+                         <strong>직거래:</strong> 오리온`
+            },
+            'vitol': {
+                title: 'VITOL',
+                content: `<strong>지역:</strong> 남해 (부산/울산)<br>
+                         <strong>전문:</strong> MGO/LSMGO 온리 🔥<br>
+                         <strong>전략:</strong> 정유사 지배력 강한 한국 시장에서 VLSFO/HSFO보다 MGO 전략적 취급<br>
+                         <strong>특징:</strong> 마진과 유연성 우수<br>
+                         <strong>재고:</strong> MGO 재고 앵꼬 발생 가능<br>
+                         <strong>접촉:</strong> 신진 (전담 트레이더) 통해서만`
+            },
+            'prime': {
+                title: '프라임 (Prime)',
+                content: `<strong>서플:</strong> SK Energy<br>
+                         <strong>여신:</strong> 30DD ⭐ (SK 여신 바닥남)<br>
+                         <strong>연락:</strong> 왓츠앱<br>
+                         <strong>특징:</strong> 챗봇 사용 (30분 간격 가격 표시), 가격은 밸리디티 아닌 세팅값<br>
+                         <strong>쓰루:</strong> 현대퓨얼 지원 가능`
+            },
+            'sea-oil': {
+                title: '씨오일 (Sea-OIL)',
+                content: `<strong>⚠️ 주의:</strong> 에스오일(S-OIL 정유사)과 완전히 다른 회사<br>
+                         <strong>서플:</strong> GS, S-OIL, SK, HD 등<br>
+                         <strong>연락:</strong> 카카오 비즈<br>
+                         <strong>특징:</strong> 여신 문제 상시 존재 (상수값), CIA 조건 가능<br>
+                         <strong>커버:</strong> 현대퓨얼 건도 커버 가능<br>
+                         <strong>가격:</strong> 현대퓨얼 직접 520 CIA vs 씨오일 경유 517, 30DD<br>
+                         <strong>황상수 과장:</strong> 씨너지 외 다른 라인 담당 추정`
+            },
+            'panoco': {
+                title: '파노코 (Panoco)',
+                content: `<strong>서플:</strong> HD Hyundai Oilbank, SK, S-OIL (GS 거의 안함)<br>
+                         <strong>연락:</strong> 카카오 비즈<br>
+                         <strong>여신:</strong> 무한대 ⭐<br>
+                         <strong>특징:</strong> 오션링크보다 덜 까칠<br>
+                         <strong>참고:</strong> 11/6 기준 Vis 개런티 불가능`
+            },
+            'minerva': {
+                title: '미네르바 (Minerva) 🌟',
+                content: `<strong>등급:</strong> 메이저 트레이더<br>
+                         <strong>서플:</strong> 전 정유사 커버 가능<br>
+                         <strong>특징:</strong> 즉시 가격 제공 (찍으면 바로)<br>
+                         <strong>역할:</strong> 씨너지가 직접 못 구하는 기름 중개<br>
+                         <strong>구조:</strong> 큰 건, 경쟁력 있는 건 커버 (중간에 2-3개 트레이더 개입 가능)<br>
+                         <strong>비용:</strong> 톤당 2-3불 지불<br>
+                         <strong>관계:</strong> 판매도 하고 경쟁도 함 (동일 레벨)<br>
+                         <strong>담당:</strong> 준모`
+            },
+            'orion': {
+                title: '오리온',
+                content: `<strong>연락:</strong> 카카오 비즈<br>
+                         <strong>윤희근 사장:</strong> CST 가능여부 매우 민감, 얼리 여부 매우 민감, 빠른 가격 회신 필수<br>
+                         <strong>윤현석 차장:</strong> 얼리 여부 매우 민감, 가격 받을 때 얼리 먼저 확인 후 전달<br>
+                         <strong>직거래:</strong> GS 글로벌, SK Energy<br>
+                         <strong>전략:</strong> 직거래로 인쿼리 의미 없음 (얼리 확인용만 유용)`
+            },
+            'seanergy': {
+                title: '씨너지 (Seanergy)',
+                content: `<strong>우리 회사</strong><br>
+                         <strong>역할:</strong> 트레이더 / 중개인<br>
+                         <strong>업무:</strong> 구매자(선주)와 판매자(트레이더/정유사) 매칭`
+            }
+        };
+
+        let currentActiveNode = null;
+
+        function showConnections(nodeId) {
+            // 모든 노드 초기화
+            const allNodes = document.querySelectorAll('.node');
+            allNodes.forEach(node => {
+                node.classList.remove('active', 'dimmed');
+            });
+
+            // 선택된 노드 활성화
+            const selectedNode = document.querySelector(`[data-id="${nodeId}"]`);
+            if (!selectedNode) return;
+
+            selectedNode.classList.add('active');
+            currentActiveNode = nodeId;
+
+            // 연결된 노드들 찾기
+            const connectedNodes = new Set();
+            
+            // 직접 연결
+            if (connections[nodeId]) {
+                connections[nodeId].forEach(id => connectedNodes.add(id));
+            }
+
+            // 역방향 연결
+            Object.keys(connections).forEach(key => {
+                if (connections[key].includes(nodeId)) {
+                    connectedNodes.add(key);
+                }
+            });
+
+            // 씨너지는 항상 활성화
+            connectedNodes.add('seanergy');
+
+            // 연결되지 않은 노드 흐리게
+            allNodes.forEach(node => {
+                const id = node.getAttribute('data-id');
+                if (id !== nodeId && !connectedNodes.has(id)) {
+                    node.classList.add('dimmed');
+                }
+            });
+
+            // 정보 패널 표시
+            if (detailInfo[nodeId]) {
+                showInfoPanel(detailInfo[nodeId].title, detailInfo[nodeId].content);
+            }
+        }
+
+        function showInfoPanel(title, content) {
+            const panel = document.getElementById('infoPanel');
+            document.getElementById('infoPanelTitle').textContent = title;
+            document.getElementById('infoPanelContent').innerHTML = content;
+            panel.classList.add('show');
+        }
+
+        function closeInfoPanel() {
+            const panel = document.getElementById('infoPanel');
+            panel.classList.remove('show');
+        }
+
+        function filterAll() {
+            const allNodes = document.querySelectorAll('.node');
+            allNodes.forEach(node => {
+                node.style.display = 'block';
+                node.classList.remove('active', 'dimmed');
+            });
+            closeInfoPanel();
+            
+            // 포트 필터 초기화
+            document.querySelectorAll('.port-tag').forEach(tag => {
+                tag.classList.remove('active');
+            });
+        }
+
+        function filterByType(type) {
+            const allNodes = document.querySelectorAll('.node');
+            allNodes.forEach(node => {
+                const nodeType = node.getAttribute('data-type');
+                if (nodeType === type || nodeType === 'seanergy') {
+                    node.style.display = 'block';
+                    node.classList.remove('dimmed');
+                } else {
+                    node.style.display = 'none';
+                }
+                node.classList.remove('active');
+            });
+            closeInfoPanel();
+        }
+
+        function filterByPort(port) {
+            // 포트 태그 활성화
+            document.querySelectorAll('.port-tag').forEach(tag => {
+                tag.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            const allNodes = document.querySelectorAll('.node');
+            
+            if (port === 'all') {
+                filterAll();
+                return;
+            }
+
+            allNodes.forEach(node => {
+                const nodePort = node.getAttribute('data-port');
+                const nodeType = node.getAttribute('data-type');
+                
+                // 씨너지는 항상 표시
+                if (nodeType === 'seanergy') {
+                    node.style.display = 'block';
+                    node.classList.remove('dimmed');
+                    return;
+                }
+
+                // 고객사는 항상 표시
+                if (nodeType === 'customer') {
+                    node.style.display = 'block';
+                    node.classList.remove('dimmed');
+                    return;
+                }
+
+                // 포트 필터링
+                if (nodePort === 'all' || nodePort.includes(port)) {
+                    node.style.display = 'block';
+                    node.classList.remove('dimmed');
+                } else {
+                    node.style.display = 'block';
+                    node.classList.add('dimmed');
+                }
+                node.classList.remove('active');
+            });
+            closeInfoPanel();
+        }
+
+        function searchNodes() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const allNodes = document.querySelectorAll('.node');
+
+            if (searchTerm === '') {
+                filterAll();
+                return;
+            }
+
+            allNodes.forEach(node => {
+                const title = node.querySelector('.node-title').textContent.toLowerCase();
+                const info = node.querySelector('.node-info').textContent.toLowerCase();
+                
+                if (title.includes(searchTerm) || info.includes(searchTerm)) {
+                    node.style.display = 'block';
+                    node.classList.remove('dimmed');
+                    node.classList.add('active');
+                } else {
+                    node.style.display = 'block';
+                    node.classList.add('dimmed');
+                    node.classList.remove('active');
+                }
+            });
+        }
+
+        // 초기 설정
+        document.addEventListener('DOMContentLoaded', function() {
+            // 씨너지 노드 기본 강조
+            const seaenergyNode = document.querySelector('[data-id="seanergy"]');
+            if (seaenergyNode) {
+                seaenergyNode.classList.add('active');
+            }
+        });
+
+        // 검색창 엔터키 처리
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchNodes();
+            }
+        });
+
+        // 배경 클릭 시 필터 초기화
+        document.querySelector('.network-container').addEventListener('click', function(e) {
+            if (e.target === this) {
+                filterAll();
+            }
+        });
+    </script>
+</body>
+</html>
